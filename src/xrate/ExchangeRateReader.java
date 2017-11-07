@@ -73,7 +73,35 @@ public class ExchangeRateReader {
 		}
 		try {
 			//Constructing the baseURL, with the year, month, and day modifiers well as the xml document type
-			
+			String baseURL = Url + String.valueOf(year) + "/" + monthString + "/" + dayString + ".xml";
+			URL url = new URL(baseURL);
+			try {
+				//Parse the xml file from the url into Document type
+				InputStream xmlStream = url.openStream();
+				DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+				DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+				Document doc = docBuilder.parse(xmlStream);
+				doc.getDocumentElement().normalize();
+
+				//Iterating through the nodes with the tag name fx
+				NodeList nodeList = doc.getElementsByTagName("fx");
+				for (int i = 0; i < nodeList.getLength(); i++) {
+					Node node = nodeList.item(i);
+					if (node.getNodeType() == Node.ELEMENT_NODE) {
+						//Until it finds the appropriate currencyCode/child node, then return the rate of the 
+						//corresponding rates
+						Element fstElmnt = (Element) node;
+						NodeList fstNmElmntLst = fstElmnt.getElementsByTagName("currency_code");
+						Element fstNmElmnt = (Element) fstNmElmntLst.item(0);
+						NodeList fstNm = fstNmElmnt.getChildNodes();
+						if ((fstNm.item(0)).getNodeValue().toString().compareTo(currencyCode) == 0){
+							NodeList lstNmElmntLst = fstElmnt.getElementsByTagName("rate");
+							Element lstNmElmnt = (Element) lstNmElmntLst.item(0);
+							NodeList lstNm = lstNmElmnt.getChildNodes();
+							return Float.valueOf(lstNm.item(0).getNodeValue().toString());
+						}
+					}
+				}
 
 
 			} catch (IOException ex) {
